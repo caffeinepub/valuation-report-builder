@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileDown, Printer } from "lucide-react";
 import React from "react";
 import type { VehicleReport } from "../types";
+import { useSignatureSettings } from "../useSignatureSettings";
 import { PrintPreview } from "./PrintPreview";
 
 interface PreviewPageProps {
@@ -10,6 +11,8 @@ interface PreviewPageProps {
 }
 
 export function PreviewPage({ report, onBack }: PreviewPageProps) {
+  const { signatureImage, stampImage } = useSignatureSettings();
+
   const handleDownloadPdf = () => {
     const prevTitle = document.title;
     document.title = report.valuationNo
@@ -67,7 +70,11 @@ export function PreviewPage({ report, onBack }: PreviewPageProps) {
           }}
           id="print-area"
         >
-          <PrintPreview report={report} />
+          <PrintPreview
+            report={report}
+            signatureImage={signatureImage}
+            stampImage={stampImage}
+          />
         </div>
       </div>
     </div>

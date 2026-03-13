@@ -4,6 +4,8 @@ import { Letterhead } from "./Letterhead";
 
 interface PrintPreviewProps {
   report: VehicleReport;
+  signatureImage?: string | null;
+  stampImage?: string | null;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -32,7 +34,11 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-export function PrintPreview({ report }: PrintPreviewProps) {
+export function PrintPreview({
+  report,
+  signatureImage,
+  stampImage,
+}: PrintPreviewProps) {
   return (
     <div
       className="bg-white text-gray-900 font-sans"
@@ -197,11 +203,43 @@ export function PrintPreview({ report }: PrintPreviewProps) {
 
       {/* Signature Block */}
       <div className="flex justify-end mt-6">
-        <div className="text-right text-xs border border-gray-400 px-4 py-3">
-          <div className="font-bold text-sm">DINESH KUMAR JANGIR</div>
-          <div>Surveyor &amp; Loss Assessor</div>
-          <div>
-            Surveyor &amp; Loss Assessor of Motors, Misc. &amp; Engineering
+        <div className="flex items-end gap-4">
+          {/* Stamp */}
+          {stampImage && (
+            <div className="flex-shrink-0">
+              <img
+                src={stampImage}
+                alt="Stamp / Seal"
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  objectFit: "contain",
+                  borderRadius: "50%",
+                  border: "1px solid #ccc",
+                }}
+              />
+            </div>
+          )}
+          {/* Signature + Name */}
+          <div className="text-right text-xs border border-gray-400 px-4 py-3">
+            {signatureImage && (
+              <div className="mb-1 flex justify-end">
+                <img
+                  src={signatureImage}
+                  alt="Signature"
+                  style={{
+                    width: "150px",
+                    height: "60px",
+                    objectFit: "contain",
+                  }}
+                />
+              </div>
+            )}
+            <div className="font-bold text-sm">DINESH KUMAR JANGIR</div>
+            <div>Surveyor &amp; Loss Assessor</div>
+            <div>
+              Surveyor &amp; Loss Assessor of Motors, Misc. &amp; Engineering
+            </div>
           </div>
         </div>
       </div>

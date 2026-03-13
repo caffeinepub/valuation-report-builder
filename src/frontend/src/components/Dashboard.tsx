@@ -1,9 +1,28 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Eye, FileText, Plus, Trash2 } from "lucide-react";
-import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Edit,
+  Eye,
+  FileText,
+  Plus,
+  Settings,
+  Stamp,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import type React from "react";
+import { useRef } from "react";
 import type { VehicleReport } from "../types";
+import { useSignatureSettings } from "../useSignatureSettings";
 
 interface DashboardProps {
   reports: VehicleReport[];
@@ -31,6 +50,166 @@ function statusBadge(status: VehicleReport["status"]) {
   );
 }
 
+function ImageUploadBox({
+  label,
+  image,
+  onUpload,
+  onClear,
+  uploadOcid,
+  deleteOcid,
+  accept = "image/*",
+  shape = "rect",
+}: {
+  label: string;
+  image: string | null;
+  onUpload: (base64: string) => void;
+  onClear: () => void;
+  uploadOcid: string;
+  deleteOcid: string;
+  accept?: string;
+  shape?: "rect" | "circle";
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) onUpload(ev.target.result as string);
+    };
+    reader.readAsDataURL(file);
+    // reset input so same file can be re-selected
+    e.target.value = "";
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+      <div
+        className="relative border-2 border-dashed border-border rounded-xl flex items-center justify-center bg-muted/30 hover:bg-muted/50 transition"
+        style={{ minHeight: "110px" }}
+      >
+        {image ? (
+          <div className="flex flex-col items-center gap-2 p-3">
+            <img
+              src={image}
+              alt={label}
+              style={{
+                maxWidth: "120px",
+                maxHeight: "80px",
+                objectFit: "contain",
+                borderRadius: shape === "circle" ? "50%" : "6px",
+                border: "1px solid #ddd",
+              }}
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => inputRef.current?.click()}
+                data-ocid={uploadOcid}
+                className="text-xs h-7"
+              >
+                <Upload size={12} className="mr-1" /> Change
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={onClear}
+                data-ocid={deleteOcid}
+                className="text-xs h-7"
+              >
+                <X size={12} className="mr-1" /> Remove
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            data-ocid={uploadOcid}
+            className="flex flex-col items-center gap-2 p-6 text-muted-foreground hover:text-foreground transition w-full"
+          >
+            <Upload size={24} />
+            <span className="text-xs">Click to upload</span>
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          onChange={handleFile}
+          className="hidden"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SignatureSettingsDialog() {
+  const {
+    signatureImage,
+    stampImage,
+    setSignatureImage,
+    setStampImage,
+    clearSignatureImage,
+    clearStampImage,
+  } = useSignatureSettings();
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          data-ocid="settings.open_modal_button"
+        >
+          <Settings size={15} className="mr-1" /> Signature & Stamp
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md" data-ocid="settings.dialog">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Stamp size={18} className="text-primary" />
+            Signature &amp; Stamp Settings
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2">
+          These images will appear in the signature block of every printed/PDF
+          report.
+        </p>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <ImageUploadBox
+            label="Signature Image"
+            image={signatureImage}
+            onUpload={setSignatureImage}
+            onClear={clearSignatureImage}
+            uploadOcid="settings.signature_upload_button"
+            deleteOcid="settings.signature_delete_button"
+            shape="rect"
+          />
+          <ImageUploadBox
+            label="Stamp / Seal"
+            image={stampImage}
+            onUpload={setStampImage}
+            onClear={clearStampImage}
+            uploadOcid="settings.stamp_upload_button"
+            deleteOcid="settings.stamp_delete_button"
+            shape="circle"
+          />
+        </div>
+        <div className="flex items-center gap-2 mt-2 p-3 bg-muted/50 rounded-lg">
+          <div className="text-xs text-muted-foreground">
+            💡 Tip: Use a transparent PNG for best results. Signature ~150×60px,
+            Stamp ~80×80px.
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function Dashboard({
   reports,
   onNew,
@@ -51,14 +230,17 @@ export function Dashboard({
               Dinesh Kumar Jangir — Surveyor &amp; Loss Assessor
             </p>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onNew}
-            data-ocid="dashboard.new_report.primary_button"
-          >
-            <Plus size={16} className="mr-1" /> New Report
-          </Button>
+          <div className="flex items-center gap-2">
+            <SignatureSettingsDialog />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onNew}
+              data-ocid="dashboard.new_report.primary_button"
+            >
+              <Plus size={16} className="mr-1" /> New Report
+            </Button>
+          </div>
         </div>
       </header>
 
