@@ -10,9 +10,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ChevronDown, ChevronUp, Eye, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  FileDown,
+  Save,
+  Send,
+} from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { VehicleReport } from "../types";
 
 interface ReportEditorProps {
@@ -83,6 +92,18 @@ function SelectField({
   );
 }
 
+function statusBadgeVariant(status: VehicleReport["status"]) {
+  if (status === "complete") return "default";
+  if (status === "submitted") return "default";
+  return "secondary";
+}
+
+function statusLabel(status: VehicleReport["status"]) {
+  if (status === "complete") return "Complete";
+  if (status === "submitted") return "Submitted";
+  return "Draft";
+}
+
 export function ReportEditor({
   report,
   onSave,
@@ -112,6 +133,22 @@ export function ReportEditor({
     return () => clearTimeout(t);
   }, [form, onSave]);
 
+  const handleSubmit = useCallback(() => {
+    const submitted = { ...form, status: "submitted" as const };
+    setForm(submitted);
+    onSave(submitted);
+    toast.success("Report submitted successfully");
+  }, [form, onSave]);
+
+  const handleSubmitAndPdf = useCallback(() => {
+    const submitted = { ...form, status: "submitted" as const };
+    setForm(submitted);
+    onSave(submitted);
+    toast.success("Report submitted — opening preview for PDF download");
+    // Small delay so save runs first
+    setTimeout(() => onPreview(), 200);
+  }, [form, onSave, onPreview]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top Bar */}
@@ -138,8 +175,12 @@ export function ReportEditor({
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              variant={form.status === "complete" ? "default" : "secondary"}
-              className="cursor-pointer text-xs"
+              variant={statusBadgeVariant(form.status)}
+              className={`cursor-pointer text-xs ${
+                form.status === "submitted"
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : ""
+              }`}
               onClick={() =>
                 setForm((prev) => ({
                   ...prev,
@@ -148,7 +189,7 @@ export function ReportEditor({
               }
               data-ocid="editor.status_toggle"
             >
-              {form.status === "complete" ? "Complete" : "Draft"}
+              {statusLabel(form.status)}
             </Badge>
             <Button
               size="sm"
@@ -164,6 +205,15 @@ export function ReportEditor({
               data-ocid="editor.save_button"
             >
               <Save size={14} className="mr-1" /> Save
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleSubmit}
+              data-ocid="editor.submit_button"
+              className="bg-green-600 hover:bg-green-700 text-white border-0"
+            >
+              <Send size={14} className="mr-1" /> Submit
             </Button>
           </div>
         </div>
@@ -567,7 +617,7 @@ export function ReportEditor({
           )}
         </div>
 
-        <div className="flex justify-end gap-3 mb-8">
+        <div className="flex flex-wrap justify-end gap-3 mb-8">
           <Button
             variant="outline"
             onClick={onBack}
@@ -577,6 +627,13 @@ export function ReportEditor({
           </Button>
           <Button onClick={onPreview} data-ocid="editor.preview_bottom_button">
             <Eye size={14} className="mr-1" /> Preview &amp; Print
+          </Button>
+          <Button
+            onClick={handleSubmitAndPdf}
+            data-ocid="editor.submit_pdf_button"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <FileDown size={14} className="mr-1" /> Submit &amp; PDF
           </Button>
         </div>
       </main>

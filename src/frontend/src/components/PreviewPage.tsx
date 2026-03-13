@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, FileDown, Printer } from "lucide-react";
 import React from "react";
 import type { VehicleReport } from "../types";
 import { PrintPreview } from "./PrintPreview";
@@ -10,6 +10,15 @@ interface PreviewPageProps {
 }
 
 export function PreviewPage({ report, onBack }: PreviewPageProps) {
+  const handleDownloadPdf = () => {
+    const prevTitle = document.title;
+    document.title = report.valuationNo
+      ? `Valuation-Report-${report.valuationNo}`
+      : "Valuation-Report";
+    window.print();
+    document.title = prevTitle;
+  };
+
   return (
     <div className="min-h-screen bg-gray-200">
       {/* Toolbar */}
@@ -25,14 +34,25 @@ export function PreviewPage({ report, onBack }: PreviewPageProps) {
           </button>
           <span className="font-semibold text-sm">Print Preview</span>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => window.print()}
-          data-ocid="preview.print_button"
-        >
-          <Printer size={14} className="mr-1" /> Print
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => window.print()}
+            data-ocid="preview.print_button"
+          >
+            <Printer size={14} className="mr-1" /> Print
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDownloadPdf}
+            data-ocid="preview.download_pdf_button"
+            className="bg-green-600 hover:bg-green-700 text-white border-0"
+          >
+            <FileDown size={14} className="mr-1" /> Download PDF
+          </Button>
+        </div>
       </div>
 
       {/* A4 Page */}

@@ -2,7 +2,7 @@ export interface VehicleReport {
   id: string;
   createdAt: string;
   updatedAt: string;
-  status: "draft" | "complete";
+  status: "draft" | "complete" | "submitted";
 
   // Header
   valuationNo: string;

@@ -13,6 +13,24 @@ interface DashboardProps {
   onDelete: (id: string) => void;
 }
 
+function statusBadge(status: VehicleReport["status"]) {
+  if (status === "submitted") {
+    return (
+      <Badge className="text-xs bg-green-600 hover:bg-green-700 text-white">
+        Submitted
+      </Badge>
+    );
+  }
+  if (status === "complete") {
+    return <Badge className="text-xs">Complete</Badge>;
+  }
+  return (
+    <Badge variant="secondary" className="text-xs">
+      Draft
+    </Badge>
+  );
+}
+
 export function Dashboard({
   reports,
   onNew,
@@ -88,18 +106,7 @@ export function Dashboard({
                               ? `#${report.valuationNo}`
                               : "Untitled"}
                           </span>
-                          <Badge
-                            variant={
-                              report.status === "complete"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs"
-                          >
-                            {report.status === "complete"
-                              ? "Complete"
-                              : "Draft"}
-                          </Badge>
+                          {statusBadge(report.status)}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {report.agencyName || "No Agency"}
